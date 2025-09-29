@@ -16,29 +16,46 @@ jobs:
     runs-on: ubuntu-latest
     environment: ${{ github.event.inputs.environment }}
     steps:
+      # Checkout the repository code
       - name: Checkout code
         uses: actions/checkout@v2
 
+      # Set up Node.js runtime
       - name: Setup Node.js
         uses: actions/setup-node@v2
         with:
           node-version: '14'
 
+      # Install dependencies
       - name: Install dependencies
         run: npm install
 
+      # Audit npm dependencies
+      - name: Audit npm dependencies
+        run: npm audit --production
+
+      # Lint code
+      - name: Lint code
+        run: npm run lint
+
+      # Run tests in staging
       - name: Run tests
         if: ${{ github.event.inputs.environment == 'staging' }}
         run: npm test
 
+      # Deploy the application
       - name: Deploy
         run: ./deploy.sh
         env:
           STAGING_SECRET: ${{ secrets.STAGING_SECRET }}
           PRODUCTION_SECRET: ${{ secrets.PRODUCTION_SECRET }}
 
-      - name: Deployment approval
-        if: ${{ github.event.inputs.environment == 'production' }}
-        uses: hmarr/auto-approve-action@v2
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+      # Notify Slack on deployment success or failure
+      - name: Notify Slack on Success
+        if: success()
+        run: |
+          curl -X POST -H 'Content-type: application/json' --data '{"text":"Deployment to ${{ github.event.inputs.environment }} succeeded!"}' ${{ secrets.SLACK_WEBHOOK_URL }}
+      - name: Notify Slack on Failure
+        if: failure()
+        run: |
+          curl -X POST -H 'Content-type: application/json' --data '{"text":"Deployment to ${{ github.event.inputs.environment }} failed!"}' ${{ secrets.SLACK_WEBHOOK_URL }}
