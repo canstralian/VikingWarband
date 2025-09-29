@@ -1,13 +1,18 @@
 import React from 'react';
 import { useVikingGame } from '../lib/stores/useVikingGame';
 import { useTON } from '../lib/stores/useTON';
+import { useIsMobile } from '../hooks/use-is-mobile';
+import TONWallet from './TONWallet';
 
 const MainMenu: React.FC = () => {
   const { setGameScreen, playerGold, playerReputation } = useVikingGame();
   const { isConnected } = useTON();
+  const isMobile = useIsMobile();
 
   return (
-    <div className="main-menu">
+    <div className={`main-menu ${isMobile ? 'mobile-layout' : ''}`}>
+      <TONWallet />
+
       <div className="menu-header">
         <h1 className="game-title">⚔️ VIKING MERCENARIES ⚔️</h1>
         <div className="subtitle">Forge your legend in blood and gold</div>

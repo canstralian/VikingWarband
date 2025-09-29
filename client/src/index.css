@@ -5,6 +5,8 @@
 @layer base {
   * {
     @apply border-border;
+    /* Prevent text selection on mobile */
+    -webkit-tap-highlight-color: transparent;
   }
 
   body {
@@ -14,6 +16,14 @@
     overflow: hidden;
     width: 100vw;
     height: 100vh;
+    /* Mobile optimizations */
+    -webkit-text-size-adjust: 100%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Prevent bounce scrolling */
+    overscroll-behavior: none;
+    /* Disable pinch zoom */
+    touch-action: manipulation;
   }
 }
 

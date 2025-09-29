@@ -23,6 +23,15 @@ body {
   margin: 0;
   padding: 0;
   overflow: hidden;
+  /* Prevent text selection on mobile */
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  /* Disable pull-to-refresh */
+  overscroll-behavior: none;
+  /* Disable pinch zoom */
+  touch-action: manipulation;
 }
 
 /* Loading Screen */
@@ -55,6 +64,10 @@ body {
   background: linear-gradient(135deg, var(--background-leather), #1a0f0a);
   position: relative;
   overflow-y: auto;
+  /* Smooth scrolling on iOS */
+  -webkit-overflow-scrolling: touch;
+  /* Ensure proper touch scrolling */
+  touch-action: pan-y;
 }
 
 /* TON Wallet Widget */
@@ -141,6 +154,12 @@ body {
   height: 100vh;
   padding: 2rem;
   text-align: center;
+}
+
+.main-menu.mobile-layout {
+  padding: 1rem;
+  justify-content: flex-start;
+  padding-top: 80px; /* Account for wallet widget */
 }
 
 .menu-header {
@@ -947,10 +966,168 @@ body {
   margin-bottom: 0.25rem;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
+/* Mobile-first responsive design */
+@media (max-width: 480px) {
+  body {
+    font-size: 14px;
+  }
+
   .game-title {
-    font-size: 2rem;
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .subtitle {
+    font-size: 1rem;
+  }
+
+  .player-stats {
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .stat-item {
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .menu-buttons {
+    width: 100%;
+    gap: 0.75rem;
+  }
+
+  .menu-button {
+    min-width: auto;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    min-height: 44px; /* Apple's recommended touch target size */
+  }
+
+  .button-icon {
+    font-size: 1.2rem;
+  }
+
+  .mercenary-grid,
+  .contracts-grid,
+  .warband-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .mercenary-card,
+  .contract-card {
+    padding: 1rem;
+  }
+
+  .mercenary-name {
+    font-size: 1.1rem;
+  }
+
+  .mercenary-icon {
+    font-size: 2.5rem;
+    width: 50px;
+    height: 50px;
+  }
+
+  .combat-arena {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .action-buttons {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .action-button {
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    min-height: 44px;
+  }
+
+  .screen-header {
+    flex-direction: column;
+    gap: 0.75rem;
+    text-align: center;
+    padding-bottom: 0.75rem;
+  }
+
+  .screen-title {
+    font-size: 1.5rem;
+  }
+
+  .ton-wallet-widget {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    left: 10px;
+    padding: 8px;
+    font-size: 0.9rem;
+  }
+
+  .wallet-title {
+    font-size: 0.9rem;
+  }
+
+  .connect-button {
+    padding: 6px 12px;
+    font-size: 0.9rem;
+  }
+
+  .recruitment-screen,
+  .warband-screen,
+  .raids-screen,
+  .combat-screen {
+    padding: 1rem;
+  }
+
+  .mercenary-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .warband-summary {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .summary-item {
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+  }
+
+  .combat-header {
+    padding: 0.75rem;
+  }
+
+  .combat-title {
+    font-size: 1.3rem;
+  }
+
+  .health-bar-container {
+    width: 150px;
+  }
+
+  .warriors-display,
+  .enemies-display {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .warrior-icon,
+  .enemy-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1.5rem;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  .game-title {
+    font-size: 2.2rem;
   }
   
   .player-stats {
@@ -964,12 +1141,13 @@ body {
   
   .menu-button {
     min-width: auto;
+    min-height: 44px;
   }
   
   .mercenary-grid,
   .contracts-grid,
   .warband-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   }
   
   .combat-arena {
@@ -978,7 +1156,13 @@ body {
   }
   
   .action-buttons {
-    flex-direction: column;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .action-button {
+    min-width: 120px;
+    min-height: 44px;
   }
   
   .screen-header {
@@ -988,8 +1172,44 @@ body {
   }
   
   .ton-wallet-widget {
-    position: static;
-    margin: 1rem;
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    left: 15px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .mercenary-grid,
+  .contracts-grid,
+  .warband-grid {
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  }
+}
+
+/* Touch-friendly interactions */
+@media (hover: none) and (pointer: coarse) {
+  .menu-button,
+  .recruit-button,
+  .action-button,
+  .contract-button,
+  .back-button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  .menu-button:active,
+  .recruit-button:active,
+  .action-button:active,
+  .contract-button:active {
+    transform: scale(0.95);
+    transition: transform 0.1s ease;
+  }
+
+  .mercenary-card:active,
+  .contract-card:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
   }
 }
 
