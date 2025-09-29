@@ -1,0 +1,300 @@
+name: Code Quality & Security
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run weekly security scans
+    - cron: '0 2 * * 1'
+
+jobs:
+  # Dependency vulnerability scanning
+  dependency-scan:
+    name: Dependency Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm audit
+        run: |
+          if npm audit --audit-level high; then
+            echo "✅ No high or critical vulnerabilities found"
+          else
+            echo "⚠️ High or critical vulnerabilities detected"
+            npm audit --audit-level high --json | jq '.vulnerabilities' || true
+            exit 1
+          fi
+
+      - name: Run Snyk security scan
+        uses: snyk/actions/node@0.4.0
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+
+  # Code quality analysis
+  code-quality:
+    name: Code Quality Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for better analysis
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Prettier check
+        run: |
+          if [ -f ".prettierrc" ] || [ -f ".prettierrc.json" ] || [ -f "prettier.config.js" ]; then
+            npx prettier --check .
+          else
+            echo "Prettier not configured, skipping..."
+          fi
+        continue-on-error: true
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v2.1.1
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  # License compliance check
+  license-scan:
+    name: License Compliance
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install license checker
+        run: npm install -g license-checker
+
+      - name: Check licenses
+        run: |
+          echo "Checking dependency licenses..."
+          license-checker --summary
+          
+          # Check for problematic licenses
+          if license-checker --excludePackages '' --excludeLicenses 'MIT;Apache-2.0;BSD-3-Clause;BSD-2-Clause;ISC;Apache*;BSD*' --summary | grep -q "└─"; then
+            echo "⚠️  Found dependencies with non-permissive licenses"
+            license-checker --excludeLicenses 'MIT;Apache-2.0;BSD-3-Clause;BSD-2-Clause;ISC;Apache*;BSD*'
+            exit 1
+          else
+            echo "✅ All dependency licenses are compatible"
+          fi
+
+  # Bundle size analysis
+  bundle-analysis:
+    name: Bundle Size Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Analyze bundle size
+        run: |
+          echo "📦 Bundle Size Analysis"
+          echo "======================="
+          
+          if [ -d "client/dist" ]; then
+            echo "Client bundle sizes:"
+            ls -lah client/dist/assets/ | head -10
+            
+            # Check for large files (>500KB)
+            find client/dist -type f -size +500k -exec ls -lh {} \; | while read -r line; do
+              echo "⚠️  Large file detected: $line"
+            done
+          fi
+          
+          if [ -d "dist" ]; then
+            echo "Server bundle sizes:"
+            ls -lah dist/ | head -10
+          fi
+
+  # Performance testing
+  lighthouse:
+    name: Lighthouse Performance
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+      - name: Install Lighthouse CI
+        run: npm install -g @lhci/cli
+
+      - name: Run Lighthouse CI
+        run: |
+          echo "🔍 Lighthouse performance analysis would run here"
+          echo "Configure LHCI when you have a deployment URL"
+          
+          # Example configuration:
+          # lhci autorun --config=.lighthouserc.json
+          
+          # Create example config
+          cat > .lighthouserc.json << 'EOF'
+          {
+            "ci": {
+              "collect": {
+                "url": ["http://localhost:3000"],
+                "startServerCommand": "npm start",
+                "startServerReadyPattern": "Server running"
+              },
+              "upload": {
+                "target": "temporary-public-storage"
+              },
+              "assert": {
+                "assertions": {
+                  "categories:performance": ["warn", {"minScore": 0.8}],
+                  "categories:accessibility": ["error", {"minScore": 0.9}],
+                  "categories:best-practices": ["warn", {"minScore": 0.8}],
+                  "categories:seo": ["warn", {"minScore": 0.8}]
+                }
+              }
+            }
+          }
+          EOF
+
+  # Security headers check
+  security-headers:
+    name: Security Headers Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check security configuration
+        run: |
+          echo "🔒 Security Configuration Check"
+          echo "==============================="
+          
+          # Check for security-related files
+          if [ -f "server/index.ts" ]; then
+            echo "Checking server security configuration..."
+            
+            # Look for security middleware
+            if grep -q "helmet" server/index.ts; then
+              echo "✅ Helmet middleware found"
+            else
+              echo "⚠️  Consider adding Helmet for security headers"
+            fi
+            
+            if grep -q "cors" server/index.ts; then
+              echo "✅ CORS configuration found"
+            else
+              echo "⚠️  Consider configuring CORS"
+            fi
+            
+            if grep -q "express-rate-limit" server/index.ts; then
+              echo "✅ Rate limiting found"
+            else
+              echo "⚠️  Consider adding rate limiting"
+            fi
+          fi
+          
+          # Check for environment variable usage
+          if grep -rq "process.env" . --exclude-dir=node_modules; then
+            echo "✅ Environment variables are being used"
+            
+            # Check for hardcoded secrets (basic check)
+            if grep -rE "(password|secret|key|token).*=.*['\"][^'\"]{10,}" . --exclude-dir=node_modules; then
+              echo "⚠️  Potential hardcoded secrets found - please review"
+              exit 1
+            fi
+          fi
+
+  # Code coverage (when tests are added)
+  coverage:
+    name: Code Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests with coverage
+        run: |
+          if [ -f "jest.config.js" ] || [ -f "vitest.config.ts" ] || grep -q '"test"' package.json; then
+            echo "Running tests with coverage..."
+            npm test -- --coverage
+          else
+            echo "No test configuration found, skipping coverage..."
+            echo "Consider adding tests for better code quality assurance"
+          fi
+        continue-on-error: true
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        continue-on-error: true
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          file: ./coverage/lcov.info
+          flags: unittests
+          name: codecov-umbrella
