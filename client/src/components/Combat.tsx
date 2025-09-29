@@ -210,12 +210,12 @@ const Combat: React.FC = () => {
                 <h2>🎉 VICTORY! 🎉</h2>
                 <p>Your warriors have triumphed!</p>
                 <div className="rewards-earned">
-                  <div>Gold earned: +{currentRaid.rewards.gold} 🪙</div>
-                  {currentRaid.rewards.ton > 0 && (
-                    <div>TON earned: +{currentRaid.rewards.ton} 💎</div>
+                  <div>Gold earned: +{currentRaid.gold_reward} 🪙</div>
+                  {currentRaid.ton_reward > 0 && (
+                    <div>TON earned: +{currentRaid.ton_reward} 💎</div>
                   )}
-                  <div>Reputation: +{currentRaid.rewards.reputation} ⭐</div>
-                  <div>Experience: +{currentRaid.rewards.experience} XP</div>
+                  <div>Reputation: +{currentRaid.reputation_reward} ⭐</div>
+                  <div>Experience: +{currentRaid.experience_reward} XP</div>
                 </div>
               </>
             ) : (

@@ -1,16 +1,21 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useVikingGame } from '../lib/stores/useVikingGame';
-import { RAID_CONTRACTS } from '../data/raids';
 
 const RaidContracts: React.FC = () => {
   const { 
     setGameScreen, 
     warband, 
+    raidContracts,
     startRaid,
-    calculateWarbandPower 
+    calculateWarbandPower,
+    loadRaidContracts 
   } = useVikingGame();
 
   const warbandPower = calculateWarbandPower();
+  
+  useEffect(() => {
+    loadRaidContracts();
+  }, [loadRaidContracts]);
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
@@ -55,7 +60,7 @@ const RaidContracts: React.FC = () => {
         </div>
       ) : (
         <div className="contracts-grid">
-          {RAID_CONTRACTS.map((contract) => (
+          {raidContracts.map((contract) => (
             <div key={contract.id} className="contract-card">
               <div className="contract-header">
                 <h3 className="contract-title">{contract.title}</h3>
@@ -79,8 +84,8 @@ const RaidContracts: React.FC = () => {
               <div className="contract-requirements">
                 <div className="requirement-item">
                   <span className="req-label">Required Power:</span>
-                  <span className={`req-value ${warbandPower >= contract.requiredPower ? 'sufficient' : 'insufficient'}`}>
-                    {contract.requiredPower} ⚔️
+                  <span className={`req-value ${warbandPower >= contract.required_power ? 'sufficient' : 'insufficient'}`}>
+                    {contract.required_power} ⚔️
                   </span>
                 </div>
                 <div className="requirement-item">
@@ -93,18 +98,18 @@ const RaidContracts: React.FC = () => {
                 <h4>Rewards:</h4>
                 <div className="rewards-list">
                   <div className="reward-item">
-                    <span>Gold: {contract.rewards.gold} 🪙</span>
+                    <span>Gold: {contract.gold_reward} 🪙</span>
                   </div>
-                  {contract.rewards.ton > 0 && (
+                  {contract.ton_reward > 0 && (
                     <div className="reward-item">
-                      <span>TON: {contract.rewards.ton} 💎</span>
+                      <span>TON: {contract.ton_reward} 💎</span>
                     </div>
                   )}
                   <div className="reward-item">
-                    <span>Reputation: +{contract.rewards.reputation} ⭐</span>
+                    <span>Reputation: +{contract.reputation_reward} ⭐</span>
                   </div>
                   <div className="reward-item">
-                    <span>Experience: +{contract.rewards.experience} XP</span>
+                    <span>Experience: +{contract.experience_reward} XP</span>
                   </div>
                 </div>
               </div>
@@ -112,20 +117,20 @@ const RaidContracts: React.FC = () => {
               <div className="contract-risks">
                 <div className="risk-item">
                   <span className="risk-label">Injury Risk:</span>
-                  <span className="risk-value">{contract.injuryRisk}%</span>
+                  <span className="risk-value">{contract.injury_risk}%</span>
                 </div>
                 <div className="risk-item">
                   <span className="risk-label">Death Risk:</span>
-                  <span className="risk-value">{contract.deathRisk}%</span>
+                  <span className="risk-value">{contract.death_risk}%</span>
                 </div>
               </div>
 
               <button 
-                className={`contract-button ${canTakeRaid(contract.requiredPower) ? 'available' : 'unavailable'}`}
+                className={`contract-button ${canTakeRaid(contract.required_power) ? 'available' : 'unavailable'}`}
                 onClick={() => startRaid(contract)}
-                disabled={!canTakeRaid(contract.requiredPower)}
+                disabled={!canTakeRaid(contract.required_power)}
               >
-                {canTakeRaid(contract.requiredPower) ? 'Accept Contract' : 'Insufficient Power'}
+                {canTakeRaid(contract.required_power) ? 'Accept Contract' : 'Insufficient Power'}
               </button>
             </div>
           ))}

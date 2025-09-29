@@ -2,7 +2,6 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { MERCENARY_TYPES } from "../client/src/data/mercenaries";
-import { RAID_CONTRACTS } from "../client/src/data/raids";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Player routes
@@ -140,22 +139,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // If no raids in database, seed with default data
       if (raids.length === 0) {
         console.log("Seeding raid contracts...");
-        for (const raidData of RAID_CONTRACTS) {
-          await storage.createRaidContract({
-            title: raidData.title,
-            description: raidData.description,
-            location: raidData.location,
-            difficulty: raidData.difficulty,
-            required_power: raidData.requiredPower,
-            duration: raidData.duration,
-            gold_reward: raidData.rewards.gold,
-            ton_reward: raidData.rewards.ton,
-            reputation_reward: raidData.rewards.reputation,
-            experience_reward: raidData.rewards.experience,
-            injury_risk: raidData.injuryRisk,
-            death_risk: raidData.deathRisk,
+        const seedRaids = [
+          {
+            title: 'Merchant Caravan Raid',
+            description: 'A wealthy merchant caravan travels the trade routes. Easy pickings for seasoned warriors.',
+            location: 'Trade Route near Hedeby',
+            difficulty: 'Easy' as const,
+            required_power: 150,
+            duration: '2 hours',
+            gold_reward: 200,
+            ton_reward: 0,
+            reputation_reward: 10,
+            experience_reward: 50,
+            injury_risk: 15,
+            death_risk: 2,
             is_active: true
-          });
+          },
+          {
+            title: 'Saxon Village Raid',
+            description: 'A prosperous Saxon village ripe for plunder. Expect moderate resistance from local militia.',
+            location: 'Wessex Borderlands',
+            difficulty: 'Medium' as const,
+            required_power: 250,
+            duration: '4 hours',
+            gold_reward: 400,
+            ton_reward: 0.05,
+            reputation_reward: 25,
+            experience_reward: 100,
+            injury_risk: 30,
+            death_risk: 8,
+            is_active: true
+          },
+          {
+            title: 'Monastery Assault',
+            description: 'A wealthy monastery holds great treasures. Heavily defended by warrior monks.',
+            location: 'Lindisfarne Abbey',
+            difficulty: 'Hard' as const,
+            required_power: 400,
+            duration: '6 hours',
+            gold_reward: 800,
+            ton_reward: 0.1,
+            reputation_reward: 50,
+            experience_reward: 200,
+            injury_risk: 45,
+            death_risk: 15,
+            is_active: true
+          }
+        ];
+        
+        for (const raidData of seedRaids) {
+          await storage.createRaidContract(raidData);
         }
         raids = await storage.getRaidContracts();
       }

@@ -136,7 +136,7 @@ const WarbandManagement: React.FC = () => {
                 {mercenary.currentHealth < mercenary.stats.health && (
                   <button 
                     className="action-button heal"
-                    onClick={() => healMercenary(mercenary.id)}
+                    onClick={() => healMercenary(parseInt(mercenary.id))}
                     disabled={playerGold < 20}
                   >
                     Heal (20🪙)
@@ -145,7 +145,7 @@ const WarbandManagement: React.FC = () => {
                 {mercenary.morale < 100 && (
                   <button 
                     className="action-button rest"
-                    onClick={() => restMercenary(mercenary.id)}
+                    onClick={() => restMercenary(parseInt(mercenary.id))}
                     disabled={playerGold < 10}
                   >
                     Rest (10🪙)

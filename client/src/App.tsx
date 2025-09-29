@@ -4,15 +4,18 @@ import "@fontsource/inter";
 import "./styles/viking-theme.css";
 import Game from "./components/Game";
 import { useVikingGame } from "./lib/stores/useVikingGame";
+import { useTON } from "./lib/stores/useTON";
 
 const queryClient = new QueryClient();
 
 function App() {
   const { initializeGame } = useVikingGame();
+  const { address, isConnected } = useTON();
 
   useEffect(() => {
-    initializeGame();
-  }, [initializeGame]);
+    const walletAddress = isConnected && address ? address : 'demo_wallet_123';
+    initializeGame(walletAddress);
+  }, [initializeGame, address, isConnected]);
 
   return (
     <QueryClientProvider client={queryClient}>

@@ -37,16 +37,20 @@ export interface RaidRewards {
 }
 
 export interface RaidContract {
-  id: string;
+  id: number;
   title: string;
   description: string;
   location: string;
   difficulty: 'Easy' | 'Medium' | 'Hard' | 'Legendary';
-  requiredPower: number;
+  required_power: number;
   duration: string;
-  rewards: RaidRewards;
-  injuryRisk: number;
-  deathRisk: number;
+  gold_reward: number;
+  ton_reward: number;
+  reputation_reward: number;
+  experience_reward: number;
+  injury_risk: number;
+  death_risk: number;
+  is_active: boolean;
 }
 
 export type GameScreen = 'menu' | 'recruitment' | 'warband' | 'raids' | 'combat';

@@ -26,7 +26,7 @@ const MercenaryRecruitment: React.FC = () => {
       }
     }
 
-    recruitMercenary(mercenaryType);
+    await recruitMercenary(mercenaryType);
   };
 
   return (
