@@ -62,7 +62,9 @@ const MainMenu: React.FC = () => {
       </div>
 
       <div className="menu-footer">
-        <div className="rune-decoration">ᚱᚢᚾᛖᛋ</div>
+        <div className="rune-decoration glow-text">
+            ᚱᚢᚾᛖᛊ ⚔️ ᚠᚢᚦᚨᚱᚲ
+          </div>
       </div>
     </div>
   );
