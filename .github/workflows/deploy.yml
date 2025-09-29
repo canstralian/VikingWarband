@@ -1,236 +1,44 @@
-name: Deploy to Production
-
-permissions:
-  contents: read
-  packages: write
-  deployments: write
+name: Deploy
 
 on:
-  push:
-    branches: [ main ]
-    tags: [ 'v*' ]
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Environment to deploy to'
+        description: 'Select environment'
         required: true
-        default: 'staging'
-        type: choice
+        default: 'production'
         options:
-          - staging
           - production
-
-env:
-  NODE_VERSION: '18'
-  REGISTRY: ghcr.io
+          - staging
 
 jobs:
-  # Build for deployment
-  build-deploy:
-    name: Build for Deployment
+  deploy:
     runs-on: ubuntu-latest
-    outputs:
-      image: ${{ steps.image.outputs.image }}
+    environment: ${{ github.event.inputs.environment }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v2
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v2
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          node-version: '14'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
-      - name: Build application
-        run: npm run build
+      - name: Run tests
+        if: ${{ github.event.inputs.environment == 'staging' }}
+        run: npm test
+
+      - name: Deploy
+        run: ./deploy.sh
         env:
-          NODE_ENV: production
+          STAGING_SECRET: ${{ secrets.STAGING_SECRET }}
+          PRODUCTION_SECRET: ${{ secrets.PRODUCTION_SECRET }}
 
-      - name: Create deployment package
-        run: |
-          mkdir -p deploy-package
-          cp -r dist/ deploy-package/
-          cp -r client/dist/ deploy-package/client-dist/
-          cp package*.json deploy-package/
-          cp -r server/ deploy-package/server/
-          cp -r shared/ deploy-package/shared/
-          
-          # Create startup script
-          cat > deploy-package/start.sh << 'EOF'
-          #!/bin/bash
-          export NODE_ENV=production
-          export PORT=${PORT:-3000}
-          node dist/index.js
-          EOF
-          chmod +x deploy-package/start.sh
-
-      - name: Upload deployment artifacts
-        uses: actions/upload-artifact@v4
+      - name: Deployment approval
+        if: ${{ github.event.inputs.environment == 'production' }}
+        uses: hmarr/auto-approve-action@v2
         with:
-          name: deployment-package
-          path: deploy-package/
-          retention-days: 30
-
-  # Deploy to Replit (if using Replit deployments)
-  deploy-replit:
-    name: Deploy to Replit
-    runs-on: ubuntu-latest
-    needs: build-deploy
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    environment: 
-      name: production
-      url: ${{ steps.deploy.outputs.url }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Download deployment package
-        uses: actions/download-artifact@v4
-        with:
-          name: deployment-package
-          path: deploy-package/
-
-      - name: Deploy to Replit
-        id: deploy
-        run: |
-          echo "🚀 Deploying to Replit..."
-          
-          if [ -n "${{ secrets.REPLIT_TOKEN }}" ]; then
-            echo "Setting up Replit CLI..."
-            npm install -g @replit/cli
-            
-            # Configure Replit authentication
-            echo "${{ secrets.REPLIT_TOKEN }}" | replit auth --stdin
-            
-            # Deploy to Replit
-            replit deploy --confirm
-            
-            # Get deployment URL (adjust based on your repl name)
-            REPL_NAME="${{ secrets.REPL_NAME }}"
-            if [ -z "$REPL_NAME" ]; then
-              REPL_NAME="viking-mercenaries"
-            fi
-            REPL_URL="https://${REPL_NAME}.replit.app"
-            echo "url=$REPL_URL" >> $GITHUB_OUTPUT
-            echo "✅ Deployed to: $REPL_URL"
-          else
-            echo "⚠️ REPLIT_TOKEN not configured - skipping deployment"
-            echo "To enable Replit deployment, add REPLIT_TOKEN to repository secrets"
-            echo "url=https://placeholder.replit.app" >> $GITHUB_OUTPUT
-          fi
-
-  # Deploy to other platforms (examples)
-  deploy-docker:
-    name: Build and Push Docker Image
-    runs-on: ubuntu-latest
-    needs: build-deploy
-    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')
-    permissions:
-      contents: read
-      packages: write
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Download deployment package
-        uses: actions/download-artifact@v4
-        with:
-          name: deployment-package
-          path: deploy-package/
-
-      - name: Log in to Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ github.repository }}
-          tags: |
-            type=ref,event=branch
-            type=ref,event=pr
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=sha
-
-      - name: Create Dockerfile
-        run: |
-          cat > Dockerfile << 'EOF'
-          FROM node:18-alpine
-          
-          # Install curl for health checks
-          RUN apk add --no-cache curl
-          
-          WORKDIR /app
-          
-          # Copy package files
-          COPY deploy-package/package*.json ./
-          
-          # Install production dependencies
-          RUN npm ci --only=production && npm cache clean --force
-          
-          # Copy application files
-          COPY deploy-package/ ./
-          
-          # Create non-root user
-          RUN addgroup -g 1001 -S nodejs && \
-              adduser -S gameuser -u 1001
-          
-          # Set ownership
-          RUN chown -R gameuser:nodejs /app
-          USER gameuser
-          
-          # Expose port
-          EXPOSE 3000
-          
-          # Health check
-          HEALTHCHECK --interval=30s --timeout=3s --start-period=15s --retries=3 \
-            CMD curl -f http://localhost:3000/health || wget --no-verbose --tries=1 --spider http://localhost:3000 || exit 1
-          
-          # Start application
-          CMD ["node", "dist/index.js"]
-          EOF
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-
-  # Notify deployment status
-  notify:
-    name: Notify Deployment Status
-    runs-on: ubuntu-latest
-    needs: [deploy-replit, deploy-docker]
-    if: always()
-    steps:
-      - name: Deployment Success Notification
-        if: needs.deploy-replit.result == 'success' || needs.deploy-docker.result == 'success'
-        run: |
-          echo "✅ Deployment successful!"
-          echo "Replit: ${{ needs.deploy-replit.result }}"
-          echo "Docker: ${{ needs.deploy-docker.result }}"
-          
-          # Add webhook notifications here if needed
-          # curl -X POST -H 'Content-type: application/json' \
-          #   --data '{"text":"Viking Mercenaries deployed successfully! ⚔️"}' \
-          #   ${{ secrets.SLACK_WEBHOOK_URL }}
-
-      - name: Deployment Failure Notification  
-        if: needs.deploy-replit.result == 'failure' || needs.deploy-docker.result == 'failure'
-        run: |
-          echo "❌ Deployment failed!"
-          echo "Replit: ${{ needs.deploy-replit.result }}"
-          echo "Docker: ${{ needs.deploy-docker.result }}"
-          
-          # Add failure notifications here
-          exit 1
+          github_token: ${{ secrets.GITHUB_TOKEN }}
