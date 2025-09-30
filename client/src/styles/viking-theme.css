@@ -1248,6 +1248,24 @@ body {
   border-bottom: 2px solid var(--border-metal);
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-left: auto;
+}
+
+.settings-button {
+  background: rgba(75, 85, 99, 0.8);
+  border-color: var(--border-metal);
+  color: var(--text-wheat);
+}
+
+.settings-button:hover {
+  background: rgba(75, 85, 99, 1);
+  border-color: var(--secondary-gold);
+}
+
 .phase-indicator {
   background: rgba(0,0,0,0.5);
   padding: 0.5rem 1rem;
@@ -1363,17 +1381,165 @@ body {
   box-shadow: 0 6px 20px rgba(139, 92, 246, 0.3);
 }
 
+/* Development Settings Styles */
+.development-settings {
+  background: var(--background-leather);
+  min-height: 100vh;
+  padding: 1rem;
+  color: var(--text-wheat);
+}
+
+.development-settings .screen-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid var(--border-metal);
+}
+
+.settings-indicator {
+  background: rgba(0,0,0,0.5);
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  border: 1px solid var(--border-metal);
+  color: var(--secondary-gold);
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  margin-left: auto;
+}
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+
+.phase-settings,
+.user-preferences,
+.enterprise-settings,
+.tech-override {
+  background: linear-gradient(135deg, rgba(47, 27, 20, 0.8), rgba(26, 15, 10, 0.9));
+  border: 2px solid var(--border-metal);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.setting-description {
+  color: var(--text-wheat);
+  opacity: 0.8;
+  margin-bottom: 1rem;
+  font-size: 0.9rem;
+}
+
+.preference-section {
+  margin-bottom: 1.5rem;
+}
+
+.preference-label {
+  display: block;
+  font-weight: 500;
+  color: var(--secondary-gold);
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.option-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.5rem;
+}
+
+.option-button {
+  padding: 0.75rem;
+  border: 1px solid var(--border-metal);
+  border-radius: 6px;
+  background: rgba(0,0,0,0.3);
+  color: var(--text-wheat);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 60px;
+  justify-content: center;
+}
+
+.option-button:hover {
+  border-color: var(--secondary-gold);
+  background: rgba(218, 165, 32, 0.1);
+}
+
+.option-button.active {
+  border-color: var(--secondary-gold);
+  background: rgba(218, 165, 32, 0.2);
+  color: var(--secondary-gold);
+  box-shadow: 0 0 10px rgba(218, 165, 32, 0.3);
+}
+
+.option-icon {
+  font-size: 1.5rem;
+}
+
+.option-text {
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-align: center;
+}
+
+.compliance-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.setting-value {
+  display: flex;
+  align-items: center;
+}
+
+.tech-list {
+  space-y: 1rem;
+}
+
+.tech-category {
+  margin-bottom: 1rem;
+}
+
+.category-title {
+  font-weight: 500;
+  color: var(--secondary-gold);
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.tech-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
 /* Mobile responsiveness for development dashboard */
 @media (max-width: 768px) {
-  .dashboard-grid {
+  .dashboard-grid,
+  .settings-grid {
     grid-template-columns: 1fr;
     gap: 1rem;
   }
   
-  .development-dashboard .screen-header {
+  .development-dashboard .screen-header,
+  .development-settings .screen-header {
     flex-direction: column;
     gap: 0.75rem;
     text-align: center;
+  }
+  
+  .header-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-left: 0;
   }
   
   .phase-card {
@@ -1386,5 +1552,9 @@ body {
   
   .milestone-list {
     gap: 0.5rem;
+  }
+  
+  .option-grid {
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
   }
 }

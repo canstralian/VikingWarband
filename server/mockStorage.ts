@@ -15,7 +15,7 @@ export const mockStorage = {
   },
 
   async getPlayerByWallet(walletAddress: string) {
-    for (const player of mockPlayers.values()) {
+    for (const player of Array.from(mockPlayers.values())) {
       if (player.wallet_address === walletAddress) {
         return player;
       }
@@ -56,7 +56,7 @@ export const mockStorage = {
   // Mercenary methods
   async getPlayerMercenaries(playerId: number) {
     const mercenaries = [];
-    for (const merc of mockMercenaries.values()) {
+    for (const merc of Array.from(mockMercenaries.values())) {
       if (merc.player_id === playerId) {
         mercenaries.push(merc);
       }
@@ -137,6 +137,10 @@ export const mockStorage = {
 
   // Equipment methods (minimal for now)
   async getPlayerEquipment(playerId: number) {
+    return [];
+  },
+
+  async getEquipment() {
     return [];
   }
 };

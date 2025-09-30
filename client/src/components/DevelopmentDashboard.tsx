@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDevelopment } from '../lib/stores/useDevelopment';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
@@ -6,6 +6,7 @@ import { Progress } from './ui/progress';
 import { Badge } from './ui/badge';
 import { useVikingGame } from '../lib/stores/useVikingGame';
 import { DevelopmentPhase } from '../types/development';
+import DevelopmentSettings from './DevelopmentSettings';
 import { 
   Beaker, 
   Code, 
@@ -21,6 +22,7 @@ import {
 
 const DevelopmentDashboard: React.FC = () => {
   const { setGameScreen } = useVikingGame();
+  const [showSettings, setShowSettings] = useState(false);
   const {
     currentPhase,
     experimentalGoals,
@@ -40,6 +42,10 @@ const DevelopmentDashboard: React.FC = () => {
       initialize();
     }
   }, [isInitialized, initialize]);
+
+  if (showSettings) {
+    return <DevelopmentSettings onBack={() => setShowSettings(false)} />;
+  }
 
   const phaseConfig = getPhaseConfig();
   const activeStacks = getActiveStacks();
@@ -74,8 +80,19 @@ const DevelopmentDashboard: React.FC = () => {
           Back to Hall
         </button>
         <h2 className="screen-title">🧪 Development Laboratory</h2>
-        <div className="phase-indicator">
-          Phase: {phaseConfig?.icon} {phaseConfig?.name}
+        <div className="header-actions">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowSettings(true)}
+            className="settings-button"
+          >
+            <Settings className="w-4 h-4 mr-2" />
+            Settings
+          </Button>
+          <div className="phase-indicator">
+            Phase: {phaseConfig?.icon} {phaseConfig?.name}
+          </div>
         </div>
       </div>
 
