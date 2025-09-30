@@ -18,13 +18,19 @@ import {
   type Equipment,
   type PlayerEquipment
 } from "@shared/schema";
+import { mockStorage } from "./mockStorage";
 
-if (!process.env.DATABASE_URL) {
-  throw new Error("DATABASE_URL environment variable is required");
+// Use mock storage for development if DATABASE_URL is not a real URL
+const isDevelopment = !process.env.DATABASE_URL || process.env.DATABASE_URL.includes('localhost');
+
+let db: any;
+if (!isDevelopment) {
+  if (!process.env.DATABASE_URL) {
+    throw new Error("DATABASE_URL environment variable is required");
+  }
+  const sql = neon(process.env.DATABASE_URL);
+  db = drizzle(sql);
 }
-
-const sql = neon(process.env.DATABASE_URL);
-export const db = drizzle(sql);
 
 export interface IGameStorage {
   // Player methods
@@ -147,4 +153,4 @@ export class DatabaseStorage implements IGameStorage {
   }
 }
 
-export const storage = new DatabaseStorage();
+export const storage = isDevelopment ? mockStorage : new DatabaseStorage();
