@@ -59,6 +59,14 @@ const MainMenu: React.FC = () => {
           <span className="button-icon">🏴‍☠️</span>
           <span>Raid Contracts</span>
         </button>
+
+        <button 
+          className="menu-button development"
+          onClick={() => setGameScreen('development')}
+        >
+          <span className="button-icon">🧪</span>
+          <span>Development Lab</span>
+        </button>
       </div>
 
       <div className="menu-footer">

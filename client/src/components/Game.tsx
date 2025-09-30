@@ -5,6 +5,7 @@ import MercenaryRecruitment from './MercenaryRecruitment';
 import WarbandManagement from './WarbandManagement';
 import RaidContracts from './RaidContracts';
 import Combat from './Combat';
+import DevelopmentDashboard from './DevelopmentDashboard';
 import TONWallet from './TONWallet';
 
 const Game: React.FC = () => {
@@ -22,6 +23,8 @@ const Game: React.FC = () => {
         return <RaidContracts />;
       case 'combat':
         return <Combat />;
+      case 'development':
+        return <DevelopmentDashboard />;
       default:
         return <MainMenu />;
     }

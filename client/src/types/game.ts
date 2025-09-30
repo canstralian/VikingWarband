@@ -53,4 +53,4 @@ export interface RaidContract {
   is_active: boolean;
 }
 
-export type GameScreen = 'menu' | 'recruitment' | 'warband' | 'raids' | 'combat';
+export type GameScreen = 'menu' | 'recruitment' | 'warband' | 'raids' | 'combat' | 'development';
