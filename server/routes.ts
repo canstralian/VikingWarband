@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { MERCENARY_TYPES } from "../client/src/data/mercenaries";
+import * as crypto from "crypto";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Player routes
@@ -14,7 +15,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Create new player if doesn't exist
         player = await storage.createPlayer({
           wallet_address: walletAddress,
-          username: `Viking_${Math.floor(Math.random() * 10000)}`
+          username: `Viking_${crypto.randomInt(10000)}`
         });
       }
       
@@ -75,7 +76,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const mercenary = await storage.createMercenary({
         player_id: parseInt(playerId),
-        name: customName || `${mercenaryType.name} ${Math.floor(Math.random() * 1000)}`,
+        name: customName || `${mercenaryType.name} ${crypto.randomInt(1000)}`,
         type: mercenaryType.name,
         icon: mercenaryType.icon,
         health: mercenaryType.baseStats.health,
